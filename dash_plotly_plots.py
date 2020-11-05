@@ -4,6 +4,8 @@ import plotly.graph_objects as go
 
 catalog_df = pd.read_csv("catalog_cleaned.csv")
 
+
+# https://dash.plotly.com/datatable/interactivity
 fig = go.Figure(data=[go.Table(
     header=dict(values=['Entry UUID', 'Categories', 'Entry Date', 'Entry'],
                 fill_color='paleturquoise',

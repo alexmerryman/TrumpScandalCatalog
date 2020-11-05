@@ -25,6 +25,7 @@ def nltk_process(df):
 tokenized_df = nltk_process(catalog_df_sample)
 
 
+# https://scikit-learn.org/stable/modules/feature_extraction.html#feature-hashing
 def nltk_token_freq_dict(df):
     unique_tokens = df['tokenized_text'].unique().tolist()
     # TODO: token_hash_dict
