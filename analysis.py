@@ -10,7 +10,7 @@ import nltk
 # Trumpworld - family, campaign
 # for names -- group last name with full name (eg: some entries may refer to 'Robert Mueller', others 'Mueller' -- both should be grouped together)
 
-catalog_df = pd.read_csv("catalog_cleaned.csv")
+catalog_df = pd.read_csv("data/cleaned/catalog_cleaned.csv")
 
 catalog_df_sample = catalog_df.sample(n=100)
 

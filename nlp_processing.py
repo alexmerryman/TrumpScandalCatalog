@@ -7,7 +7,7 @@ from nltk import word_tokenize, pos_tag, pos_tag_sents
 from nltk.corpus import stopwords
 stop = stopwords.words('english')
 
-catalog_df = pd.read_csv("catalog_cleaned.csv")
+catalog_df = pd.read_csv("data/cleaned/catalog_cleaned.csv")
 catalog_df_sample = catalog_df.sample(n=100)
 
 print(catalog_df_sample['entry_text_split'])
