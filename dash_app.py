@@ -29,23 +29,25 @@ app.title = 'Trump Scandal Catalog'
 app.layout = html.Div(
     children=[
         html.Div(children=[ # TODO: Get this data from scraping
-            html.H1("Lest We Forget the Horrors: A Catalog of Trump’s Worst Cruelties, Collusions, Corruptions, and Crimes"),
-            html.H2('''
+            html.H1(""),
+            html.H2(""),
+            html.I(""),
+            dcc.Markdown('''
+            Data sourced from:
+            
+            __*[Lest We Forget the Horrors: A Catalog of Trump’s Worst Cruelties, Collusions, Corruptions, and Crimes](https://www.mcsweeneys.net/articles/the-complete-listing-so-far-atrocities-1-967)*__
+            
             The Complete Listing (So Far):
-            Atrocities 1- 964
-            '''),
-            html.I("by John McMurtrie, Ben Parker, Stephanie Steinbrecher, Kelsey Ronan, Amy Sumerton, Rachel Villa, and Sophia DuRose."),
-            html.P("Data sourced from:"),
-            html.A("https://www.mcsweeneys.net/articles/the-complete-listing-so-far-atrocities-1-967", href="https://www.mcsweeneys.net/articles/the-complete-listing-so-far-atrocities-1-964"),
-            html.Br(),
-            html.P('''
+            Atrocities 1-964\n
+            *by John McMurtrie, Ben Parker, Stephanie Steinbrecher, Kelsey Ronan, Amy Sumerton, Rachel Villa, and Sophia DuRose.*\n
+            \------------\n
             In an effort to improve on the fantastic reporting done by the aforementioned, I scraped the catalog data and made it filterable & searchable here.
             
             Please keep in mind, this is still very much a work in progress, and will be updated as new scandals/reporting emerge.
             Additionally, I am working on extending functionality such as providing enhanced filtering, metrics, and analytics such as frequently-appearing entities and themes.
-            
-            You can view this project's GitHub repo here: https://github.com/alexmerryman/TrumpScandalCatalog
-            ''')
+
+            You can view this project's GitHub repo [here](https://github.com/alexmerryman/TrumpScandalCatalog).
+            '''),
             ],
         ),
         html.Div(children=[
@@ -55,6 +57,9 @@ app.layout = html.Div(
                 options=[{'label': cat, 'value': cat} for cat in categories],
                 value='-All-',
                 ),
+            # TODO: Add date filter
+            # TODO: Add common-themes filter (fake news, covid, election, etc)
+            # TODO: Make filters independent? Checkbox?
             ],
             style={'width': '30%'},
         ),
