@@ -33,20 +33,20 @@ app.layout = html.Div(
             html.H2(""),
             html.I(""),
             dcc.Markdown('''
+            # Every Trump Scandal
+            ## An interactive and searchable database of all of Donald Trump's scandals.
+            A project by Alex Merryman ([GitHub repo](https://github.com/alexmerryman/TrumpScandalCatalog))
+            
             Data sourced from:
             
             __*[Lest We Forget the Horrors: A Catalog of Trump’s Worst Cruelties, Collusions, Corruptions, and Crimes](https://www.mcsweeneys.net/articles/the-complete-listing-so-far-atrocities-1-967)*__
             
-            The Complete Listing (So Far):
-            Atrocities 1-964\n
             *by John McMurtrie, Ben Parker, Stephanie Steinbrecher, Kelsey Ronan, Amy Sumerton, Rachel Villa, and Sophia DuRose.*\n
             \------------\n
             In an effort to improve on the fantastic reporting done by the aforementioned, I scraped the catalog data and made it filterable & searchable here.
             
             Please keep in mind, this is still very much a work in progress, and will be updated as new scandals/reporting emerge.
             Additionally, I am working on extending functionality such as providing enhanced filtering, metrics, and analytics such as frequently-appearing entities and themes.
-
-            You can view this project's GitHub repo [here](https://github.com/alexmerryman/TrumpScandalCatalog).
             '''),
             ],
         ),
