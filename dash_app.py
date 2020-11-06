@@ -35,7 +35,8 @@ app.layout = html.Div(
             Atrocities 1- 964
             '''),
             html.I("by John McMurtrie, Ben Parker, Stephanie Steinbrecher, Kelsey Ronan, Amy Sumerton, Rachel Villa, and Sophia DuRose."),
-            html.Link(href="https://www.mcsweeneys.net/articles/the-complete-listing-so-far-atrocities-1-964"),
+            html.P("Data sourced from:"),
+            html.A("https://www.mcsweeneys.net/articles/the-complete-listing-so-far-atrocities-1-967", href="https://www.mcsweeneys.net/articles/the-complete-listing-so-far-atrocities-1-964"),
             html.Br(),
             html.P('''
             In an effort to improve on the fantastic reporting done by the aforementioned, I scraped the catalog data and made it filterable & searchable here.
@@ -52,7 +53,7 @@ app.layout = html.Div(
             dcc.Dropdown(
                 id='filter_dropdown',
                 options=[{'label': cat, 'value': cat} for cat in categories],
-                value='All',
+                value='-All-',
                 ),
             ],
             style={'width': '30%'},
