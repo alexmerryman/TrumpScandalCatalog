@@ -60,6 +60,7 @@ app.layout = html.Div(
             # TODO: Add date filter
             # TODO: Add common-themes filter (fake news, covid, election, etc)
             # TODO: Make filters independent? Checkbox?
+            html.P("Note: You can search catalog entries for specific words or phrases by typing in the field directly below the table header (it is case sensitive)."),
             ],
             style={'width': '30%'},
         ),
