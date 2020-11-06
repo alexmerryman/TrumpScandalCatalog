@@ -6,7 +6,8 @@ import nltk
 # Mueller report
 # countries
 # Russia, China, North Korea, Iran
-# COVID/coronavirus
+# COVID/coronavirus ('mask', 'social distance', etc)
+# Hatch Act
 # Trumpworld - family, campaign
 # for names -- group last name with full name (eg: some entries may refer to 'Robert Mueller', others 'Mueller' -- both should be grouped together)
 
