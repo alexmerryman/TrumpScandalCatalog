@@ -24,7 +24,7 @@ server = app.server
 # TODO: Dash bootstrap (https://dash-bootstrap-components.opensource.faculty.ai/)
 # https://dash.plotly.com/dash-html-components
 
-app.title = 'Trump Scandal Catalog'
+app.title = 'Trump Scandal Database'
 
 app.layout = html.Div(
     children=[
