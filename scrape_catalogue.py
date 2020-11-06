@@ -29,7 +29,7 @@ def scrape_legend(soup):
     legend_df = pd.DataFrame.from_dict(data=legend_dict)
 
     datestamp = datetime.datetime.today().strftime("%Y-%m-%d")
-    legend_df.to_csv(f"catalogue_legend_scraped_{datestamp}.csv", index=False)
+    legend_df.to_csv(f"legend_scraped_{datestamp}.csv", index=False)
 
     return legend_df
 
@@ -80,6 +80,12 @@ def scrape_catalogue_list(soup):
             entry_text = f"Error - unable to extract text ({e})"
 
         try:
+            entry_links = li_soup.find("li").find_all("a")
+            entry_links_list = [a["href"] for a in entry_links]
+        except Exception as e:
+            entry_links_list = ['No links scraped.']
+
+        try:
             entry_date_text = entry_date.get_text()
         except Exception as e:
             entry_date_text = f"Error - unable to extract date as ext ({e})"
@@ -94,6 +100,7 @@ def scrape_catalogue_list(soup):
         print("ENTRY TEXT:", entry_text)
         print("DATE:", entry_date)
         print("BULLETS:", entry_bullets)
+        print("ENTRY LINKS:", entry_links_list)
         # print(entry_parts_list)
 
         entry_uuid = uuid.uuid4()
@@ -105,7 +112,8 @@ def scrape_catalogue_list(soup):
                       "legend_bullet_src": entry_bullet_src,
                       "entry_date": entry_date_text,
                       "entry_text": entry_text,
-                      "scrape_timestamp": scrape_timestamp
+                      "entry_links": entry_links_list,
+                      "scrape_timestamp": scrape_timestamp,
                       }
 
         catalogue_scraped.append(entry_dict)
@@ -123,5 +131,6 @@ catalogue_scraped = scrape_catalogue_list(soup)
 catalogue_df = pd.DataFrame(catalogue_scraped)
 print(catalogue_df.head())
 
-catalogue_df.to_csv("catalogue_scraped.csv", index=False)
+datestamp = datetime.datetime.today().strftime("%Y-%m-%d")
+catalogue_df.to_csv(f"catalogue_scraped_{datestamp}.csv", index=False)
 

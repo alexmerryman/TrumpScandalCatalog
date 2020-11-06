@@ -4,7 +4,7 @@ import uuid
 
 
 def preprocess_legend():
-    legend_df = pd.read_csv("catalogue_legend_scraped_2020-11-04.csv")
+    legend_df = pd.read_csv("data/raw/legend_scraped_2020-11-05.csv")
 
     # legend_df['category'] = legend_df['category'].str.strip()
     legend_df['category'] = legend_df['category'].str.replace('–', '')
@@ -20,9 +20,10 @@ legend_df = preprocess_legend()
 
 
 
-catalog_df = pd.read_csv("catalogue_scraped.csv")
+catalog_df = pd.read_csv("data/raw/catalogue_scraped_2020-11-05.csv")
 
-catalog_df['entry_text'] = catalog_df['entry_text'].str.strip()
+for c in catalog_df.columns:
+    catalog_df[c] = catalog_df[c].str.strip()
 
 catalog_df[["date_split", "entry_text_split"]] = catalog_df["entry_text"].str.split(" – ", n=1, expand=True)
 catalog_df['entry_text_split'] = catalog_df['entry_text_split'].str.strip()
