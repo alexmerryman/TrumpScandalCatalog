@@ -3,8 +3,8 @@ from datetime import datetime
 import uuid
 
 
-def preprocess_legend():
-    legend_df = pd.read_csv("data/raw/legend_scraped_2020-11-05.csv")
+def preprocess_legend(raw_csv_path):
+    legend_df = pd.read_csv(raw_csv_path)
 
     # legend_df['category'] = legend_df['category'].str.strip()
     legend_df['category'] = legend_df['category'].str.replace('–', '')
@@ -16,11 +16,12 @@ def preprocess_legend():
     return legend_df
 
 
-legend_df = preprocess_legend()
+legend_df = preprocess_legend("data/raw/legend_scraped_2020-11-05.csv")
 
 
 
 catalog_df = pd.read_csv("data/raw/catalogue_scraped_2020-11-05.csv")
+# TODO: Drop rows where catalog_df['entry_text_split'] is NULL
 
 for c in catalog_df.columns:
     catalog_df[c] = catalog_df[c].str.strip()
