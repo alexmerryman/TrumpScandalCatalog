@@ -20,9 +20,11 @@ app = dash.Dash(__name__)
 server = app.server
 
 
-# TODO: Hide columns
+# TODO: Rename columns
 # TODO: Dash bootstrap (https://dash-bootstrap-components.opensource.faculty.ai/)
 # https://dash.plotly.com/dash-html-components
+
+app.title = 'Trump Scandal Catalog'
 
 app.layout = html.Div(
     children=[
@@ -34,6 +36,15 @@ app.layout = html.Div(
             '''),
             html.I("by John McMurtrie, Ben Parker, Stephanie Steinbrecher, Kelsey Ronan, Amy Sumerton, Rachel Villa, and Sophia DuRose."),
             html.Link(href="https://www.mcsweeneys.net/articles/the-complete-listing-so-far-atrocities-1-964"),
+            html.Br(),
+            html.P('''
+            In an effort to improve on the fantastic reporting done by the aforementioned, I scraped the catalog data and made it filterable & searchable here.
+            
+            Please keep in mind, this is still very much a work in progress, and will be updated as new scandals/reporting emerge.
+            Additionally, I am working on extending functionality such as providing enhanced filtering, metrics, and analytics such as frequently-appearing entities and themes.
+            
+            You can view this project's GitHub repo here: https://github.com/alexmerryman/TrumpScandalCatalog/settings
+            ''')
             ],
         ),
         html.Div(children=[
@@ -46,23 +57,23 @@ app.layout = html.Div(
             ],
             style={'width': '30%'},
         ),
-        html.Div(children=[
-            html.H4("Categories:"),
-            html.Ul(children=[
-                html.Li(
-                    html.Area(
-                        style={
-                            'shape': 'circle',
-                            # 'height': '25px',
-                            # 'width': '25px',
-                            # 'background_color': '#ff5733',
-                            # 'border_radius': '50%',
-                            # 'display': 'inline-block',
-                        }
-                    )
-                ),
-            ]),
-        ]),
+        # html.Div(children=[
+        #     html.H4("Categories:"),
+        #     html.Ul(children=[
+        #         html.Li(
+        #             html.Area(
+        #                 style={
+        #                     'shape': 'circle',
+        #                     # 'height': '25px',
+        #                     # 'width': '25px',
+        #                     # 'background_color': '#ff5733',
+        #                     # 'border_radius': '50%',
+        #                     # 'display': 'inline-block',
+        #                 }
+        #             )
+        #         ),
+        #     ]),
+        # ]),
         html.Br(),
         dash_table.DataTable(
             # https://dash.plotly.com/datatable/reference
