@@ -44,7 +44,7 @@ app.layout = html.Div(
             Please keep in mind, this is still very much a work in progress, and will be updated as new scandals/reporting emerge.
             Additionally, I am working on extending functionality such as providing enhanced filtering, metrics, and analytics such as frequently-appearing entities and themes.
             
-            You can view this project's GitHub repo here: https://github.com/alexmerryman/TrumpScandalCatalog/settings
+            You can view this project's GitHub repo here: https://github.com/alexmerryman/TrumpScandalCatalog
             ''')
             ],
         ),
