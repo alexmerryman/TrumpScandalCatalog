@@ -9,7 +9,15 @@ import dash_html_components as html
 
 legend_df = pd.read_csv("data/cleaned/legend_cleaned.csv")
 catalog_df = pd.read_csv("data/cleaned/catalog_cleaned.csv")
+
 catalog_df = catalog_df.sort_values(by='entry_date_dt', ascending=False)  # TODO: Do sorting in another step, save final final df to /raw folder
+catalog_df = catalog_df[~catalog_df['entry_date'].str.contains('Error - unable to extract date')]
+catalog_df.rename(columns={
+    'categories': 'Category(s)',
+    'entry_date': 'Date',
+    'entry_text_split': 'Entry',
+}, inplace=True)
+
 
 categories = legend_df['category'].unique().tolist()
 categories.append('-All-')
@@ -86,7 +94,7 @@ app.layout = html.Div(
             # https://dash.plotly.com/datatable/reference
             id='table-container',
             columns=[{'id': c, 'name': c} for c in catalog_df.columns.values],
-            hidden_columns=['entry_uuid', 'scrape_timestamp'],
+            hidden_columns=['entry_uuid', 'entry_date_dt', 'scrape_timestamp'],
             style_cell={
                 'font_family': 'helvetica',
                 'font_size': '12px',
@@ -119,7 +127,7 @@ def display_table(cat):
     if cat == '-All-' or cat is None:
         dff = catalog_df
     else:
-        dff = catalog_df[catalog_df['categories'].str.contains(cat)]
+        dff = catalog_df[catalog_df['Category(s)'].str.contains(cat)]
     return dff.to_dict('records')
 
 
