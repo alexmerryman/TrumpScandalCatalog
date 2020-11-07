@@ -1,4 +1,5 @@
 import pandas as pd
+import datetime
 import plotly
 import plotly.graph_objects as go
 import dash
@@ -10,14 +11,18 @@ import dash_html_components as html
 legend_df = pd.read_csv("data/cleaned/legend_cleaned.csv")
 catalog_df = pd.read_csv("data/cleaned/catalog_cleaned.csv")
 
-catalog_df = catalog_df.sort_values(by='entry_date_dt', ascending=False)  # TODO: Do sorting in another step, save final final df to /raw folder
 catalog_df = catalog_df[~catalog_df['entry_date'].str.contains('Error - unable to extract date')]
+catalog_df['entry_date_dt'] = pd.to_datetime(catalog_df['entry_date_dt'], errors='ignore')
+catalog_df['entry_date_dt'] = catalog_df['entry_date_dt'].dt.date
+catalog_df = catalog_df.sort_values(by='entry_date_dt', ascending=False)  # TODO: Do sorting in another step, save final final df to /raw folder
 catalog_df.rename(columns={
     'categories': 'Category(s)',
     'entry_date': 'Date',
     'entry_text_split': 'Entry',
 }, inplace=True)
 
+absolute_min_date = min(catalog_df['entry_date_dt'])
+absolute_max_date = datetime.date.today()
 
 categories = legend_df['category'].unique().tolist()
 categories.append('-All-')
@@ -92,6 +97,19 @@ app.layout = html.Div(
                 options=[{'label': cat, 'value': cat} for cat in categories],
                 value='-All-',
                 ),
+            html.Br(),
+            html.H4("Filter by date range:"),
+            dcc.DatePickerRange(
+                id='date-picker-range',
+                min_date_allowed=absolute_min_date,
+                max_date_allowed=absolute_max_date,
+                initial_visible_month=absolute_min_date,
+                number_of_months_shown=3,
+                end_date=absolute_max_date,
+                display_format='M/D/Y',
+                clearable=True,
+            ),
+            html.Div(id='output-container-date-picker-range'),
             # TODO: Add date filter
             # TODO: Add common-themes filter (fake news, covid, election, etc)
             # TODO: Make filters independent? Checkbox?
@@ -149,13 +167,36 @@ app.layout = html.Div(
 
 @app.callback(
     Output('table-container', 'data'),
-    [Input('filter_dropdown', 'value')])
-def display_table(cat):
+    [Input('filter_dropdown', 'value'),
+     Input('date-picker-range', 'start_date'),
+     Input('date-picker-range', 'end_date')])
+def display_table(cat, start_date, end_date):
+
+    if start_date is None:
+        start_date = absolute_min_date
+
+    if end_date is None:
+        end_date = datetime.date.today()
+
+    if isinstance(start_date, str):
+        start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+
+    if isinstance(end_date, str):
+        end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+
+    # TODO: Do all this date/datetime formatting above
+    # print('start date:', start_date, type(start_date))
+    # print('end date:', end_date, type(end_date))
+    # print('table date:', catalog_df['entry_date_dt'].iloc[3], type(catalog_df['entry_date_dt'].iloc[3]))
+
+    date_filtered_df = catalog_df[(catalog_df['entry_date_dt'] >= start_date) &
+                                  (catalog_df['entry_date_dt'] <= end_date)]
+
     if cat == '-All-' or cat is None:
-        dff = catalog_df
+        cat_filtered_df = date_filtered_df
     else:
-        dff = catalog_df[catalog_df['Category(s)'].str.contains(cat)]
-    return dff.to_dict('records')
+        cat_filtered_df = date_filtered_df[date_filtered_df['Category(s)'].str.contains(cat)]
+    return cat_filtered_df.to_dict('records')
 
 
 if __name__ == '__main__':
