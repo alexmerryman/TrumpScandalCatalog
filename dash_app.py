@@ -9,17 +9,20 @@ import dash_core_components as dcc
 import dash_html_components as html
 
 legend_df = pd.read_csv("data/cleaned/legend_cleaned.csv")
-catalog_df = pd.read_csv("data/cleaned/catalog_cleaned.csv")
+catalog_df = pd.read_csv("data/cleaned/database_cleaned_w_links.csv")
 
 catalog_df = catalog_df[~catalog_df['entry_date'].str.contains('Error - unable to extract date')]
 catalog_df['entry_date_dt'] = pd.to_datetime(catalog_df['entry_date_dt'], errors='ignore')
 catalog_df['entry_date_dt'] = catalog_df['entry_date_dt'].dt.date
 catalog_df = catalog_df.sort_values(by='entry_date_dt', ascending=False)  # TODO: Do sorting in another step, save final final df to /raw folder
-catalog_df.rename(columns={
+catalog_df.rename(
+    columns={
     'categories': 'Category(s)',
     'entry_date': 'Date',
     'entry_text_split': 'Entry',
-}, inplace=True)
+    'entry_links': 'Sources'
+    },
+    inplace=True)
 
 absolute_min_date = min(catalog_df['entry_date_dt'])
 absolute_max_date = datetime.date.today()
@@ -140,6 +143,11 @@ app.layout = html.Div(
             id='table-container',
             columns=[{'id': c, 'name': c} for c in catalog_df.columns.values],
             hidden_columns=['entry_uuid', 'entry_date_dt', 'scrape_timestamp'],
+            style_data={
+                'width': '100px',
+                'maxWidth': '100px',
+                'minWidth': '100px',
+            },
             style_cell={
                 'font_family': 'helvetica',
                 'font_size': '12px',
@@ -153,6 +161,19 @@ app.layout = html.Div(
                     'if': {'row_index': 'odd'},
                     'backgroundColor': 'rgb(248, 248, 248)'
                 }
+            ],
+            style_cell_conditional=[
+                {'if': {'column_id': 'Sources'},
+                 'width': '5px',
+                 'overflow': 'hidden',
+                 'textOverflow': 'ellipsis',
+                 },
+                {'if': {'column_id': 'Category(s)'},
+                 'width': '5px'},
+                {'if': {'column_id': 'Date'},
+                 'width': '5px'},
+                {'if': {'column_id': 'Entry'},
+                 'width': '150px'},
             ],
             style_header={
                 'backgroundColor': 'rgb(230, 230, 230)',
