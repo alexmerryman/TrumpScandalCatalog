@@ -71,7 +71,6 @@ app.layout = html.Div(
             dcc.Markdown('''
             # Every Trump Scandal
             ## An interactive and searchable database of all of Donald Trump's scandals.
-            A project by Alex Merryman ([GitHub repo](https://github.com/alexmerryman/TrumpScandalCatalog))
             
             Data sourced from:
             
