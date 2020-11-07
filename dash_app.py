@@ -85,11 +85,14 @@ app.layout = html.Div(
             __*[Lest We Forget the Horrors: A Catalog of Trump’s Worst Cruelties, Collusions, Corruptions, and Crimes](https://www.mcsweeneys.net/articles/the-complete-listing-so-far-atrocities-1-967)*__
             
             *by John McMurtrie, Ben Parker, Stephanie Steinbrecher, Kelsey Ronan, Amy Sumerton, Rachel Villa, and Sophia DuRose.*\n
-            \------------\n
+            \------------------------------------\n
             In an effort to improve on the fantastic reporting done by the aforementioned, I scraped the catalog data and made it filterable & searchable here.
             
             Please keep in mind, this is still very much a work in progress, and will be updated as new scandals/reporting emerge.
             Additionally, I am working on extending functionality such as providing enhanced filtering, metrics, and analytics such as frequently-appearing entities and themes.
+            
+            \------------------------------------\n
+            *Database last updated: 11/05/2020 9:35pm EST*
             '''),
             ],
         ),
