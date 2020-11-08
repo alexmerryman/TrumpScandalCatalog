@@ -1,5 +1,7 @@
 import pandas as pd
+from ast import literal_eval
 import datetime
+import re
 import plotly
 import plotly.graph_objects as go
 import dash
@@ -7,20 +9,51 @@ from dash.dependencies import Input, Output
 import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
 
 legend_df = pd.read_csv("data/cleaned/legend_cleaned.csv")
 catalog_df = pd.read_csv("data/cleaned/database_cleaned_w_links.csv")
+
+# TODO: Move all of this to processing
+def htmlize_links(row):
+    str_list = literal_eval(row['entry_links'])
+
+    html_links = []
+    for i in str_list:
+        i = i.replace(',', '')  # TODO: This doesn't seem to do anything
+        link = f"[{i}]({i})\n\n"
+        html_links.append(link)
+
+    return html_links
+
+
+catalog_df['entry_links_markdown'] = catalog_df.apply(lambda row: htmlize_links(row), axis=1)
+
+
+def markdown_categories(row):
+    categories_list = literal_eval(row['categories'])
+
+    categories_markdown = []
+    for i in categories_list:
+        cat_md = f"{i}\n"
+        categories_markdown.append(cat_md)
+
+    return categories_markdown
+
+
+catalog_df['categories'] = catalog_df.apply(lambda row: markdown_categories(row), axis=1)
 
 catalog_df = catalog_df[~catalog_df['entry_date'].str.contains('Error - unable to extract date')]
 catalog_df['entry_date_dt'] = pd.to_datetime(catalog_df['entry_date_dt'], errors='ignore')
 catalog_df['entry_date_dt'] = catalog_df['entry_date_dt'].dt.date
 catalog_df = catalog_df.sort_values(by='entry_date_dt', ascending=False)  # TODO: Do sorting in another step, save final final df to /raw folder
+
 catalog_df.rename(
     columns={
     'categories': 'Category(s)',
     'entry_date': 'Date',
     'entry_text_split': 'Entry',
-    'entry_links': 'Sources'
+    'entry_links_markdown': 'Sources'
     },
     inplace=True)
 
@@ -32,15 +65,17 @@ categories.append('-All-')
 categories = sorted(categories)
 
 
-app = dash.Dash(__name__)
+app = dash.Dash(
+    __name__,
+    external_stylesheets=[dbc.themes.YETI]
+)
 server = app.server
 
 
 # TODO: Rename columns
 # TODO: Dash bootstrap (https://dash-bootstrap-components.opensource.faculty.ai/)
 # https://dash.plotly.com/dash-html-components
-
-app.title = 'Trump Scandal Database'
+app.title = 'Every Trump Scandal - Searchable Database'
 app.index_string = '''
 <!DOCTYPE html>
 <html>
@@ -72,36 +107,41 @@ app.index_string = '''
 
 app.layout = html.Div(
     children=[
-        html.Div(children=[ # TODO: Get this data from scraping
-            html.H1(""),
-            html.H2(""),
-            html.I(""),
+        html.Div(
+            id='text-container',
+            className='container',
+            style={'margin-left': '5px', 'margin-right': '10px'},
+            children=[ # TODO: Get this data from scraping
             dcc.Markdown('''
             # Every Trump Scandal
-            ## An interactive and searchable database of all of Donald Trump's scandals.
+            ## An interactive & searchable database of all of Donald Trump's scandals.
             
             Data sourced from:
-            
             __*[Lest We Forget the Horrors: A Catalog of Trump’s Worst Cruelties, Collusions, Corruptions, and Crimes](https://www.mcsweeneys.net/articles/the-complete-listing-so-far-atrocities-1-967)*__
             
             *by John McMurtrie, Ben Parker, Stephanie Steinbrecher, Kelsey Ronan, Amy Sumerton, Rachel Villa, and Sophia DuRose.*\n
             \------------------------------------\n
-            In an effort to improve on the fantastic reporting done by the aforementioned, I scraped the catalog data and made it filterable & searchable here.
+            In an effort to improve on the fantastic reporting done by the aforementioned, we scraped the catalog data and made it filterable & searchable here.
             
             Please keep in mind, this is still very much a work in progress, and will be updated as new scandals/reporting emerge.
-            Additionally, I am working on extending functionality such as providing enhanced filtering, metrics, and analytics such as frequently-appearing entities and themes.
+            Additionally, we am working on extending functionality such as providing enhanced filtering, metrics, and analytics such as frequently-appearing entities and themes.
             
             \------------------------------------\n
             *Database last updated: 11/05/2020 9:35pm EST*
             '''),
             ],
         ),
-        html.Div(children=[
+        html.Div(
+            id='filter-container',
+            className='container',
+            style={'width': '50%', 'margin-left': '5px', 'margin-right': '10px'},
+            children=[
             html.H4("Filter by category:"),
             dcc.Dropdown(
                 id='filter_dropdown',
                 options=[{'label': cat, 'value': cat} for cat in categories],
-                value='-All-',
+                # value='-All-',
+                multi=True,
                 ),
             html.Br(),
             html.H4("Filter by date range:"),
@@ -121,70 +161,67 @@ app.layout = html.Div(
             # TODO: Make filters independent? Checkbox?
             html.P("Note: You can search catalog entries for specific words or phrases by typing in the field directly below the table header (it is case sensitive)."),
             ],
-            style={'width': '30%'},
         ),
-        # html.Div(children=[
-        #     html.H4("Categories:"),
-        #     html.Ul(children=[
-        #         html.Li(
-        #             html.Area(
-        #                 style={
-        #                     'shape': 'circle',
-        #                     # 'height': '25px',
-        #                     # 'width': '25px',
-        #                     # 'background_color': '#ff5733',
-        #                     # 'border_radius': '50%',
-        #                     # 'display': 'inline-block',
-        #                 }
-        #             )
-        #         ),
-        #     ]),
-        # ]),
         html.Br(),
-        dash_table.DataTable(
-            # https://dash.plotly.com/datatable/reference
-            id='table-container',
-            columns=[{'id': c, 'name': c} for c in catalog_df.columns.values],
-            hidden_columns=['entry_uuid', 'entry_date_dt', 'scrape_timestamp'],
-            style_data={
-                'width': '100px',
-                'maxWidth': '100px',
-                'minWidth': '100px',
-            },
-            style_cell={
-                'font_family': 'helvetica',
-                'font_size': '12px',
-                'whiteSpace': 'normal',
-                # 'height': 'auto',
-                # 'lineHeight': '15px',
-                'textAlign': 'left',
-            },
-            style_data_conditional=[
-                {
-                    'if': {'row_index': 'odd'},
-                    'backgroundColor': 'rgb(248, 248, 248)'
-                }
+        html.Div(
+            id='datatable-container',
+            className='container',
+            style={'margin-left': '10px', 'margin-right': '5px'},
+            children=[
+                dash_table.DataTable(
+                    # https://dash.plotly.com/datatable/reference
+                    id='table-container',
+                    columns=[
+                        # {'id': c, 'name': c} for c in catalog_df.columns.values,
+                        {'name': 'Category(s)', 'id': 'Category(s)', 'type': 'text', 'presentation': 'markdown'},
+                        {'name': 'Date', 'id': 'Date', 'type': 'datetime', 'presentation': 'markdown'},
+                        {'name': 'Entry', 'id': 'Entry', 'type': 'text', 'presentation': 'markdown'},
+                        {'name': 'Sources', 'id': 'Sources', 'type': 'text', 'presentation': 'markdown'},
+                    ],
+                    hidden_columns=['entry_uuid', 'entry_date_dt', 'scrape_timestamp'],
+                    style_data={
+                        'width': '100px',
+                        'maxWidth': '100px',
+                        'minWidth': '100px',
+                    },
+                    style_cell={
+                        'font_family': 'helvetica',
+                        'font_size': '12px',
+                        'whiteSpace': 'normal',
+                        # 'height': 'auto',
+                        # 'lineHeight': '15px',
+                        'textAlign': 'left',
+                    },
+                    style_data_conditional=[
+                        {
+                            'if': {'row_index': 'odd'},
+                            'backgroundColor': 'rgb(248, 248, 248)'
+                        }
+                    ],
+                    style_cell_conditional=[
+                        {'if': {'column_id': 'Sources'},
+                         'width': '5px',
+                         'overflow': 'hidden',
+                         'textOverflow': 'ellipsis',
+                         },
+                        {'if': {'column_id': 'Category(s)'},
+                         'width': '5px'},
+                        {'if': {'column_id': 'Date'},
+                         'width': '5px'},
+                        {'if': {'column_id': 'Entry'},
+                         'width': '150px'},
+                    ],
+                    style_header={
+                        'backgroundColor': 'rgb(230, 230, 230)',
+                        'fontWeight': 'bold'
+                    },
+                    filter_action='native',  # TODO: Convert to lowercase, create another column of lower(text) and/or do backend filter with: df[‘column’].contains(‘text’, case=False).
+                    page_size=1000,
+                    css=[{"selector": ".show-hide", "rule": "display: none"}],
+                    # style_table={'display': 'blocl', 'width': '33%', 'margin-left': '0', 'margin-right': '0'},
+                ),
             ],
-            style_cell_conditional=[
-                {'if': {'column_id': 'Sources'},
-                 'width': '5px',
-                 'overflow': 'hidden',
-                 'textOverflow': 'ellipsis',
-                 },
-                {'if': {'column_id': 'Category(s)'},
-                 'width': '5px'},
-                {'if': {'column_id': 'Date'},
-                 'width': '5px'},
-                {'if': {'column_id': 'Entry'},
-                 'width': '150px'},
-            ],
-            style_header={
-                'backgroundColor': 'rgb(230, 230, 230)',
-                'fontWeight': 'bold'
-            },
-            filter_action='native',  # TODO: Convert to lowercase, create another column of lower(text) and/or do backend filter with: df[‘column’].contains(‘text’, case=False).
-            page_size=1000,
-        )
+        ),
     ]
 )
 
@@ -216,10 +253,13 @@ def display_table(cat, start_date, end_date):
     date_filtered_df = catalog_df[(catalog_df['entry_date_dt'] >= start_date) &
                                   (catalog_df['entry_date_dt'] <= end_date)]
 
-    if cat == '-All-' or cat is None:
+    if cat is None:
+        cat_filtered_df = date_filtered_df
+    elif '-All-' in cat:
         cat_filtered_df = date_filtered_df
     else:
-        cat_filtered_df = date_filtered_df[date_filtered_df['Category(s)'].str.contains(cat)]
+        cat_list_passed_search = [re.escape(c) for c in cat]
+        cat_filtered_df = date_filtered_df[date_filtered_df['Category(s)'].str.contains('|'.join(cat_list_passed_search))]
     return cat_filtered_df.to_dict('records')
 
 
