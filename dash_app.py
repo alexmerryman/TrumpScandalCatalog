@@ -4,74 +4,19 @@ import datetime
 import re
 import plotly
 import plotly.graph_objects as go
+import plotly.express as px
 import dash
 from dash.dependencies import Input, Output
 import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
+import process_for_reporting_layer
 
-# TODO: Read from reporting_layer
-legend_df = pd.read_csv("data/cleaned/legend_cleaned.csv")
-catalog_df = pd.read_csv("data/cleaned/database_cleaned_w_links.csv")
-
-# TODO: Move all of this to processing
-def markdown_links(row):
-    str_list = literal_eval(row['entry_links'])
-    html_links = "".join([f"- [{i}]({i})\n\n" for i in str_list])
-
-    return html_links
-
-
-catalog_df['entry_links_markdown'] = catalog_df.apply(lambda row: markdown_links(row), axis=1)
-
-categories_emojis = {
-    "Sexual Misconduct, Harassment, & Bullying": '🗣',
-    "White Supremacy, Racism, Homophobia, Transphobia, & Xenophobia": '🔴',
-    "Public Statements / Tweets": '📱',
-    "Collusion with Russia & Obstruction of Justice": '⚖',
-    "Trump Staff & Administration": '🧑‍💼',
-    "Trump Family Business Dealings": '💰',
-    "Policy": '📋',
-    "Environment": '🏞',
-    "No Category": '?',
-}
-
-def markdown_categories(row):
-    categories_list = literal_eval(row['categories'])
-    categories_markdown = "".join([f"{categories_emojis[i]} {i}\n\n" for i in categories_list])
-
-    return categories_markdown
-
-
-catalog_df['categories'] = catalog_df.apply(lambda row: markdown_categories(row), axis=1)
-
-catalog_df = catalog_df[~catalog_df['entry_date'].str.contains('Error - unable to extract date')]
-catalog_df['entry_date_dt'] = pd.to_datetime(catalog_df['entry_date_dt'], errors='ignore')
-catalog_df['entry_date_dt'] = catalog_df['entry_date_dt'].dt.date
-catalog_df = catalog_df.sort_values(by='entry_date_dt', ascending=False)  # TODO: Do sorting in another step, save final final df to /raw folder
-
-catalog_df.rename(
-    columns={
-    'categories': 'Category(s)',
-    'entry_date': 'Date',
-    'entry_text_split': 'Entry',
-    'entry_links_markdown': 'Sources'
-    },
-    inplace=True)
+catalog_df, legend_df, categories_for_dropdown_filter, themes_for_dropdown_filter = process_for_reporting_layer.process_reporting_layer_all()
 
 absolute_min_date = min(catalog_df['entry_date_dt'])
 absolute_max_date = datetime.date.today()
-
-
-categories_for_dropdown_filter = [{"label": "-All-", "value": "-All-"}]
-def category_transform_for_dropdown_filter(row):
-    categories_for_dropdown_filter.append({"label": f"{categories_emojis[row['category']]} {row['category']}", "value": row["category_id"]})
-    return {row['category']: row['category_id']}
-
-
-legend_df['cat_for_dropdown'] = legend_df.apply(lambda row: category_transform_for_dropdown_filter(row), axis=1)
-
 
 app = dash.Dash(
     __name__,
@@ -149,6 +94,12 @@ app.layout = html.Div(
                 # value='-All-',
                 multi=True,
                 ),
+            html.H4("Filter by theme:"),
+            dcc.Dropdown(
+                id='theme_filter_dropdown',
+                options=[{'label': t, 'value': t} for t in themes_for_dropdown_filter],
+                multi=True,
+            ),
             html.Br(),
             html.H4("Filter by date range:"),
             dcc.DatePickerRange(
@@ -169,9 +120,21 @@ app.layout = html.Div(
         ),
         html.Br(),
         html.Div(
+            id='metrics',
+            children=[
+                dcc.Graph(
+                    id='barchart_entry_counts',
+                    # figure={
+                    #     'data': 'data',
+                    #     'layout': go.Layout(title='Order Status by Customer',),
+                    # },
+                ),
+            ],
+        ),
+        html.Div(
             id='datatable-container',
             className='container',
-            style={'margin-left': '10px', 'margin-right': '5px'},
+            style={'margin-left': '10px', 'margin-right': '2px'},
             children=[
                 dash_table.DataTable(
                     # https://dash.plotly.com/datatable/reference
@@ -205,16 +168,16 @@ app.layout = html.Div(
                     ],
                     style_cell_conditional=[
                         {'if': {'column_id': 'Sources'},
-                         'width': '5px',
+                         'width': '20%',
                          'overflow': 'hidden',
                          'textOverflow': 'ellipsis',
                          },
                         {'if': {'column_id': 'Category(s)'},
-                         'width': '5px'},
+                         'width': '20%'},
                         {'if': {'column_id': 'Date'},
-                         'width': '5px'},
+                         'width': '10%'},
                         {'if': {'column_id': 'Entry'},
-                         'width': '150px'},
+                         'width': '50%'},
                     ],
                     style_header={
                         'backgroundColor': 'rgb(230, 230, 230)',
@@ -250,7 +213,7 @@ def display_table(cat_list, start_date, end_date):
     if isinstance(end_date, str):
         end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
 
-    # TODO: Do all this date/datetime in processing
+    # TODO: Do all this date/datetime in process_for_reporting_layer
     # print('start date:', start_date, type(start_date))
     # print('end date:', end_date, type(end_date))
     # print('table date:', catalog_df['entry_date_dt'].iloc[3], type(catalog_df['entry_date_dt'].iloc[3]))
@@ -266,6 +229,48 @@ def display_table(cat_list, start_date, end_date):
         mask = date_filtered_df['category_ids'].apply(lambda x: any(c for c in cat_list if c in literal_eval(x)))
         cat_filtered_df = date_filtered_df[mask]
     return cat_filtered_df.to_dict('records')
+
+
+@app.callback(
+    Output('barchart_entry_counts', 'figure'),
+    [Input('cat_filter_dropdown', 'value'),
+     Input('date-picker-range', 'start_date'),
+     Input('date-picker-range', 'end_date')])
+def display_entry_count(cat_list, start_date, end_date):
+    if start_date is None:
+        start_date = absolute_min_date
+
+    if end_date is None:
+        end_date = datetime.date.today()
+
+    if isinstance(start_date, str):
+        start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+
+    if isinstance(end_date, str):
+        end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+
+    # TODO: Do all this date/datetime in process_for_reporting_layer
+    # print('start date:', start_date, type(start_date))
+    # print('end date:', end_date, type(end_date))
+    # print('table date:', catalog_df['entry_date_dt'].iloc[3], type(catalog_df['entry_date_dt'].iloc[3]))
+
+    date_filtered_df = catalog_df[(catalog_df['entry_date_dt'] >= start_date) &
+                                  (catalog_df['entry_date_dt'] <= end_date)]
+
+    if cat_list is None or len(cat_list) == 0:
+        cat_filtered_df = date_filtered_df
+    elif '-All-' in cat_list:
+        cat_filtered_df = date_filtered_df
+    else:
+        mask = date_filtered_df['category_ids'].apply(lambda x: any(c for c in cat_list if c in literal_eval(x)))
+        cat_filtered_df = date_filtered_df[mask]
+
+    # TODO: Use one hot encoded categories
+    entry_counts_df = cat_filtered_df.groupby(by=['entry_date_dt', 'Category(s)'], as_index=False)['entry_uuid'].agg('count')
+
+    fig = px.line(entry_counts_df, x="entry_date_dt", y="entry_uuid", color='Category(s)', title="Number of Scandal by Day")
+
+    return fig
 
 
 if __name__ == '__main__':
