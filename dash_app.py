@@ -80,8 +80,6 @@ app = dash.Dash(
 server = app.server
 
 
-# TODO: Rename columns
-# TODO: Dash bootstrap (https://dash-bootstrap-components.opensource.faculty.ai/)
 # https://dash.plotly.com/dash-html-components
 app.title = 'Every Trump Scandal - Searchable Database'
 app.index_string = '''
@@ -129,10 +127,10 @@ app.layout = html.Div(
             
             *by John McMurtrie, Ben Parker, Stephanie Steinbrecher, Kelsey Ronan, Amy Sumerton, Rachel Villa, and Sophia DuRose.*\n
             \------------------------------------\n
-            In an effort to improve on the fantastic reporting done by the aforementioned, we scraped the catalog data and made it filterable & searchable here.
+            In an effort to improve on the fantastic reporting done by the aforementioned, we scraped McSweeney's catalog data and made it filterable & searchable here.
             
             Please keep in mind, this is still very much a work in progress, and will be updated as new scandals/reporting emerge.
-            Additionally, we am working on extending functionality such as providing enhanced filtering, metrics, and analytics such as frequently-appearing entities and themes.
+            Additionally, we are working on extending functionality such as providing enhanced filtering, metrics, and analytics such as frequently-appearing entities and themes.
             
             \------------------------------------\n
             *Database last updated: 11/05/2020 9:35pm EST*
@@ -193,7 +191,7 @@ app.layout = html.Div(
                     },
                     style_cell={
                         'font_family': 'helvetica',
-                        'font_size': '12px',
+                        'font_size': '14px',
                         'whiteSpace': 'normal',
                         # 'height': 'auto',
                         # 'lineHeight': '15px',
