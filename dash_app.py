@@ -138,7 +138,7 @@ app.layout = html.Div(
             children=[
             html.H4("Filter by category:"),
             dcc.Dropdown(
-                id='filter_dropdown',
+                id='cat_filter_dropdown',
                 options=[{'label': cat, 'value': cat} for cat in categories],
                 # value='-All-',
                 multi=True,
@@ -156,9 +156,8 @@ app.layout = html.Div(
                 clearable=True,
             ),
             html.Div(id='output-container-date-picker-range'),
-            # TODO: Add date filter
             # TODO: Add common-themes filter (fake news, covid, election, etc)
-            # TODO: Make filters independent? Checkbox?
+            # TODO: Make filters independent? Checkbox to 'lock' certain filters?
             html.P("Note: You can search catalog entries for specific words or phrases by typing in the field directly below the table header (it is case sensitive)."),
             ],
         ),
@@ -228,7 +227,7 @@ app.layout = html.Div(
 
 @app.callback(
     Output('table-container', 'data'),
-    [Input('filter_dropdown', 'value'),
+    [Input('cat_filter_dropdown', 'value'),
      Input('date-picker-range', 'start_date'),
      Input('date-picker-range', 'end_date')])
 def display_table(cat, start_date, end_date):
@@ -245,7 +244,7 @@ def display_table(cat, start_date, end_date):
     if isinstance(end_date, str):
         end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
 
-    # TODO: Do all this date/datetime formatting above
+    # TODO: Do all this date/datetime in processing
     # print('start date:', start_date, type(start_date))
     # print('end date:', end_date, type(end_date))
     # print('table date:', catalog_df['entry_date_dt'].iloc[3], type(catalog_df['entry_date_dt'].iloc[3]))
@@ -253,12 +252,16 @@ def display_table(cat, start_date, end_date):
     date_filtered_df = catalog_df[(catalog_df['entry_date_dt'] >= start_date) &
                                   (catalog_df['entry_date_dt'] <= end_date)]
 
+    # TODO: Use category IDs instead of category values
     if cat is None:
         cat_filtered_df = date_filtered_df
     elif '-All-' in cat:
         cat_filtered_df = date_filtered_df
     else:
-        cat_list_passed_search = [re.escape(c) for c in cat]
+        # cat_list_passed_search = [re.escape(c) for c in cat]
+        # print(cat_list_passed_search)
+        # date_filtered_df['Category(s)'].unique().tolist()
+        cat_list_passed_search = cat
         cat_filtered_df = date_filtered_df[date_filtered_df['Category(s)'].str.contains('|'.join(cat_list_passed_search))]
     return cat_filtered_df.to_dict('records')
 
