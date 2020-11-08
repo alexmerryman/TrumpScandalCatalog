@@ -11,32 +11,35 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 
+# TODO: Read from reporting_layer
 legend_df = pd.read_csv("data/cleaned/legend_cleaned.csv")
 catalog_df = pd.read_csv("data/cleaned/database_cleaned_w_links.csv")
 
 # TODO: Move all of this to processing
-def htmlize_links(row):
+def markdown_links(row):
     str_list = literal_eval(row['entry_links'])
-
-    html_links = []
-    for i in str_list:
-        i = i.replace(',', '')  # TODO: This doesn't seem to do anything
-        link = f"[{i}]({i})\n\n"
-        html_links.append(link)
+    html_links = "".join([f"- [{i}]({i})\n\n" for i in str_list])
 
     return html_links
 
 
-catalog_df['entry_links_markdown'] = catalog_df.apply(lambda row: htmlize_links(row), axis=1)
+catalog_df['entry_links_markdown'] = catalog_df.apply(lambda row: markdown_links(row), axis=1)
 
+categories_emojis = {
+    "Sexual Misconduct, Harassment, & Bullying": '🗣',
+    "White Supremacy, Racism, Homophobia, Transphobia, & Xenophobia": '🔴',
+    "Public Statements / Tweets": '📱',
+    "Collusion with Russia & Obstruction of Justice": '⚖',
+    "Trump Staff & Administration": '🧑‍💼',
+    "Trump Family Business Dealings": '💰',
+    "Policy": '📋',
+    "Environment": '🏞',
+    "No Category": '?',
+}
 
 def markdown_categories(row):
     categories_list = literal_eval(row['categories'])
-
-    categories_markdown = []
-    for i in categories_list:
-        cat_md = f"{i}\n"
-        categories_markdown.append(cat_md)
+    categories_markdown = "".join([f"{categories_emojis[i]} {i}\n\n" for i in categories_list])
 
     return categories_markdown
 
@@ -60,9 +63,14 @@ catalog_df.rename(
 absolute_min_date = min(catalog_df['entry_date_dt'])
 absolute_max_date = datetime.date.today()
 
-categories = legend_df['category'].unique().tolist()
-categories.append('-All-')
-categories = sorted(categories)
+
+categories_for_dropdown_filter = [{"label": "-All-", "value": "-All-"}]
+def category_transform_for_dropdown_filter(row):
+    categories_for_dropdown_filter.append({"label": f"{categories_emojis[row['category']]} {row['category']}", "value": row["category_id"]})
+    return {row['category']: row['category_id']}
+
+
+legend_df['cat_for_dropdown'] = legend_df.apply(lambda row: category_transform_for_dropdown_filter(row), axis=1)
 
 
 app = dash.Dash(
@@ -139,7 +147,7 @@ app.layout = html.Div(
             html.H4("Filter by category:"),
             dcc.Dropdown(
                 id='cat_filter_dropdown',
-                options=[{'label': cat, 'value': cat} for cat in categories],
+                options=categories_for_dropdown_filter,
                 # value='-All-',
                 multi=True,
                 ),
@@ -230,7 +238,7 @@ app.layout = html.Div(
     [Input('cat_filter_dropdown', 'value'),
      Input('date-picker-range', 'start_date'),
      Input('date-picker-range', 'end_date')])
-def display_table(cat, start_date, end_date):
+def display_table(cat_list, start_date, end_date):
 
     if start_date is None:
         start_date = absolute_min_date
@@ -252,17 +260,13 @@ def display_table(cat, start_date, end_date):
     date_filtered_df = catalog_df[(catalog_df['entry_date_dt'] >= start_date) &
                                   (catalog_df['entry_date_dt'] <= end_date)]
 
-    # TODO: Use category IDs instead of category values
-    if cat is None:
+    if cat_list is None or len(cat_list) == 0:
         cat_filtered_df = date_filtered_df
-    elif '-All-' in cat:
+    elif '-All-' in cat_list:
         cat_filtered_df = date_filtered_df
     else:
-        # cat_list_passed_search = [re.escape(c) for c in cat]
-        # print(cat_list_passed_search)
-        # date_filtered_df['Category(s)'].unique().tolist()
-        cat_list_passed_search = cat
-        cat_filtered_df = date_filtered_df[date_filtered_df['Category(s)'].str.contains('|'.join(cat_list_passed_search))]
+        mask = date_filtered_df['category_ids'].apply(lambda x: any(c for c in cat_list if c in literal_eval(x)))
+        cat_filtered_df = date_filtered_df[mask]
     return cat_filtered_df.to_dict('records')
 
 
