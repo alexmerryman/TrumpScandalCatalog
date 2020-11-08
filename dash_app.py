@@ -132,6 +132,7 @@ app.layout = html.Div(
             Please keep in mind, this is still very much a work in progress, and will be updated as new scandals/reporting emerge.
             Additionally, we are working on extending functionality such as providing enhanced filtering, metrics, and analytics such as frequently-appearing entities and themes.
             
+            Follow us on [Twitter](https://twitter.com/EveryScandal)!
             \------------------------------------\n
             *Database last updated: 11/05/2020 9:35pm EST*
             '''),
@@ -164,7 +165,7 @@ app.layout = html.Div(
             html.Div(id='output-container-date-picker-range'),
             # TODO: Add common-themes filter (fake news, covid, election, etc)
             # TODO: Make filters independent? Checkbox to 'lock' certain filters?
-            html.P("Note: You can search catalog entries for specific words or phrases by typing in the field directly below the table header (it is case sensitive)."),
+            html.P("Note: You can search database entries for specific words or phrases by typing in the field directly below the table header (it is case sensitive)."),
             ],
         ),
         html.Br(),
