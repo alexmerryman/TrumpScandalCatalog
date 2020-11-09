@@ -11,9 +11,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 
-# TODO: Read from reporting_layer
-legend_df = pd.read_csv("data/cleaned/legend_cleaned.csv")
-catalog_df = pd.read_csv("data/cleaned/database_cleaned_w_links.csv")
+legend_df = pd.read_csv("data/reporting_layer/legend_cleaned.csv")
+catalog_df = pd.read_csv("data/reporting_layer/database_for_reporting.csv")
 
 # TODO: Move all of this to processing
 def markdown_links(row):
@@ -151,6 +150,7 @@ app.layout = html.Div(
                 ),
             html.Br(),
             html.H4("Filter by date range:"),
+            # TODO: Implement this: https://community.plotly.com/t/is-there-a-way-to-skip-by-year-on-date-picker/14363/7
             dcc.DatePickerRange(
                 id='date-picker-range',
                 min_date_allowed=absolute_min_date,
