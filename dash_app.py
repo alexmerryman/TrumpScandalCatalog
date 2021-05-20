@@ -119,7 +119,7 @@ app.layout = html.Div(
             children=[ # TODO: Get this data from scraping
             dcc.Markdown('''
             # Every Trump Scandal
-            ## An interactive & searchable database of all of Donald Trump's scandals.
+            ## An interactive & searchable database containing all of Donald Trump and his administration's scandals.
             
             Data sourced from:
             __*[Lest We Forget the Horrors: A Catalog of Trump’s Worst Cruelties, Collusions, Corruptions, and Crimes](https://www.mcsweeneys.net/articles/the-complete-listing-so-far-atrocities-1-967)*__, *by John McMurtrie, Ben Parker, Stephanie Steinbrecher, Kelsey Ronan, Amy Sumerton, Rachel Villa, and Sophia DuRose.*\n
@@ -128,9 +128,7 @@ app.layout = html.Div(
             
             Please keep in mind, this is still very much a work in progress, and will be updated as new scandals/reporting emerge.
             Additionally, we are working on extending functionality such as providing enhanced filtering, metrics, and analytics such as frequently-appearing entities and themes.
-            
-            Follow us on [Twitter](https://twitter.com/EveryScandal) for regular updates!
-            
+                        
             \------------------------------------\n
             *Database last updated: 11/05/2020 9:35pm EST*
             '''),
